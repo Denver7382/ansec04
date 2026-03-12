@@ -40,11 +40,11 @@
     useInlineComponents: false,
 
     /* Paths to the component HTML files (relative to site root) */
-    headerPath: '/components/ansec-header-component.html',
-    footerPath: '/components/ansec-footer-component.html',
+    headerPath: '/assets/components/ansec-header-component.html',
+    footerPath: '/assets/components/ansec-footer-component.html',
 
     /* Path to the shared CSS file */
-    cssPath: '/css/ansec-layout.css',
+    cssPath: '/assets/css/ansec-layout.css',
 
     /* IDs of the mount-point divs in your page HTML.
        Every page should contain:
@@ -112,7 +112,7 @@
 <div class="al-topbar" id="al-topbar" role="banner">
   <div class="al-topbar-inner">
     <a href="/index.html" class="al-brand" aria-label="Anum Presbyterian SHS home">
-      <img src="/images/anseclogo.jpg" alt="ANSEC Logo"
+      <img src="/assets/images/anseclogo.jpg" alt="ANSEC Logo"
            class="al-logo" width="40" height="40"
            loading="eager" onerror="this.style.display='none'"/>
       <span class="al-school-name">
@@ -409,7 +409,7 @@
       <div class="cs-col cs-col-crest">
         <img
           class="cs-crest"
-          src="/images/ansecLogo.jpg"
+          src="/assets/images/ansecLogo.jpg"
           alt="ANSEC School Crest"
           width="64" height="64"
           loading="lazy"
@@ -538,124 +538,146 @@
 
   /* ═══════════════════════════════════════════════════════════
      NAVIGATION BEHAVIOUR
-     All selectors use the  al-  prefixed IDs and classes that
-     match ansec-header-component.html exactly.
-
-     Covers:
-       - Mobile panel slide-in / slide-out
-       - Desktop dropdown open / close (click + hover on non-touch)
-       - Navbar scroll shadow effect
-       - Resize cleanup (panel + dropdowns close at desktop width)
-       - Full keyboard navigation (arrows, Enter, Space, Escape)
-       - Focus trap inside mobile panel
+     Uses event DELEGATION on document/navbar for all interactive
+     elements — this is the only reliable approach when HTML is
+     injected dynamically (innerHTML) on real mobile browsers.
+     Direct addEventListener on injected elements can silently
+     fail on iOS Safari and some Android WebViews.
   ═══════════════════════════════════════════════════════════ */
   function initNav() {
-    const $   = (s, ctx = document) => ctx.querySelector(s);
-    const $$  = (s, ctx = document) => [...ctx.querySelectorAll(s)];
     const isMobile = () => window.innerWidth <= CONFIG.mobileBreak;
 
-    /* ── Element refs ─────────────────────────────────────── */
-    const navbar   = $('#al-navbar');
-    const burger   = $('#al-burger');
-    const menu     = $('#al-menu');
-    const closeBtn = $('#al-close');
-    const overlay  = $('#al-overlay');
+    /* ── Live element refs (re-queried on each use via helpers) ── */
+    const navbar   = () => document.getElementById('al-navbar');
+    const burger   = () => document.getElementById('al-burger');
+    const menu     = () => document.getElementById('al-menu');
+    const closeBtn = () => document.getElementById('al-close');
+    const overlay  = () => document.getElementById('al-overlay');
 
-    /* Safety guard — bail if the header didn't mount */
-    if (!navbar) return;
+    /* Safety guard */
+    if (!navbar()) return;
 
     let menuOpen = false;
     let scrolled = false;
 
-    /* ── Touch detection ──────────────────────────────────── */
+    /* ── Touch detection ──────────────────────────────────────── */
     if (!('ontouchstart' in window) && navigator.maxTouchPoints === 0) {
       document.documentElement.classList.add('al-no-touch');
     }
 
-    /* ════════════════════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════
        MOBILE PANEL  open / close
-    ════════════════════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════ */
     function openMenu() {
       menuOpen = true;
-      menu    && menu.classList.add('al-open');
-      overlay && overlay.classList.add('al-vis');
-      burger  && burger.setAttribute('aria-expanded', 'true');
-      burger  && burger.setAttribute('aria-label', 'Close navigation menu');
+      const m = menu(), o = overlay(), b = burger(), c = closeBtn();
+      m && m.classList.add('al-open');
+      o && o.classList.add('al-vis');
+      b && b.setAttribute('aria-expanded', 'true');
+      b && b.setAttribute('aria-label', 'Close navigation menu');
       document.body.classList.add('al-locked');
-      setTimeout(() => { closeBtn && closeBtn.focus(); }, 80);
+      setTimeout(() => { c && c.focus(); }, 80);
     }
 
     function closeMenu() {
       if (!menuOpen) return;
       menuOpen = false;
-      menu    && menu.classList.remove('al-open');
-      overlay && overlay.classList.remove('al-vis');
-      burger  && burger.setAttribute('aria-expanded', 'false');
-      burger  && burger.setAttribute('aria-label', 'Open navigation menu');
+      const m = menu(), o = overlay(), b = burger();
+      m && m.classList.remove('al-open');
+      o && o.classList.remove('al-vis');
+      b && b.setAttribute('aria-expanded', 'false');
+      b && b.setAttribute('aria-label', 'Open navigation menu');
       document.body.classList.remove('al-locked');
-      burger  && burger.focus();
+      b && b.focus();
     }
 
-    burger   && burger.addEventListener('click',  e => { e.stopPropagation(); menuOpen ? closeMenu() : openMenu(); });
-    closeBtn && closeBtn.addEventListener('click', closeMenu);
-    overlay  && overlay.addEventListener('click',  closeMenu);
-
-    /* ════════════════════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════
        DROPDOWNS
-       Identified by  [data-drop]  on the  .al-ni  parent.
-       The trigger is always  button.al-nl  inside that  li.
-    ════════════════════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════ */
     function openDrop(li) {
       li.classList.add('al-open');
-      const btn = $('button.al-nl', li);
+      const btn = li.querySelector('button.al-nl');
       btn && btn.setAttribute('aria-expanded', 'true');
     }
 
     function closeDrop(li) {
       li.classList.remove('al-open');
-      const btn = $('button.al-nl', li);
+      const btn = li.querySelector('button.al-nl');
       btn && btn.setAttribute('aria-expanded', 'false');
     }
 
     function closeAllDrops(except = null) {
-      $$('.al-ni.al-open[data-drop]').forEach(li => {
+      document.querySelectorAll('.al-ni.al-open[data-drop]').forEach(li => {
         if (li !== except) closeDrop(li);
       });
     }
 
-    /* Click toggle — desktop + mobile both use this */
-    $$('.al-ni[data-drop] > button.al-nl').forEach(btn => {
-      btn.addEventListener('click', e => {
+    /* ════════════════════════════════════════════════════════════
+       DELEGATED CLICK HANDLER  (single listener on document)
+       Handles: burger, close button, overlay, dropdown toggles,
+       outside-click to close.
+    ════════════════════════════════════════════════════════════ */
+    document.addEventListener('click', function handleClick(e) {
+      const target = e.target;
+
+      /* ── Burger toggle ──────────────────────────────────── */
+      const burgerEl = burger();
+      if (burgerEl && (target === burgerEl || burgerEl.contains(target))) {
+        e.stopPropagation();
+        menuOpen ? closeMenu() : openMenu();
+        return;
+      }
+
+      /* ── Close button ───────────────────────────────────── */
+      const closeBtnEl = closeBtn();
+      if (closeBtnEl && (target === closeBtnEl || closeBtnEl.contains(target))) {
+        closeMenu();
+        return;
+      }
+
+      /* ── Overlay ────────────────────────────────────────── */
+      const overlayEl = overlay();
+      if (overlayEl && target === overlayEl) {
+        closeMenu();
+        return;
+      }
+
+      /* ── Dropdown toggle buttons ────────────────────────── */
+      const dropBtn = target.closest('.al-ni[data-drop] > button.al-nl');
+      if (dropBtn) {
         e.preventDefault();
         e.stopPropagation();
-        const li     = btn.closest('.al-ni');
+        const li = dropBtn.closest('.al-ni');
         const isOpen = li.classList.contains('al-open');
         closeAllDrops(isOpen ? null : li);
         isOpen ? closeDrop(li) : openDrop(li);
-      });
-    });
+        return;
+      }
 
-    /* Close when clicking anywhere outside the navbar */
-    document.addEventListener('click', e => {
-      if (!navbar.contains(e.target)) {
+      /* ── Outside click — close everything ───────────────── */
+      const nav = navbar();
+      const ov  = overlay();
+      if (nav && !nav.contains(target) && !(ov && ov.contains(target))) {
         closeAllDrops();
         if (isMobile()) closeMenu();
       }
     });
 
-    /* ════════════════════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════
        NAVBAR SCROLL SHADOW
-    ════════════════════════════════════════════════════════ */
+    ════════════════════════════════════════════════════════════ */
     function onScroll() {
+      const nav = navbar();
+      if (!nav) return;
       const y = window.scrollY;
-      if (y > 40 && !scrolled)  { navbar.classList.add('al-scrolled');    scrolled = true;  }
-      if (y <= 40 && scrolled)  { navbar.classList.remove('al-scrolled'); scrolled = false; }
+      if (y > 40 && !scrolled)  { nav.classList.add('al-scrolled');    scrolled = true;  }
+      if (y <= 40 && scrolled)  { nav.classList.remove('al-scrolled'); scrolled = false; }
     }
     window.addEventListener('scroll', onScroll, { passive: true });
 
-    /* ════════════════════════════════════════════════════════
-       RESIZE — close panel + dropdowns when switching to desktop
-    ════════════════════════════════════════════════════════ */
+    /* ════════════════════════════════════════════════════════════
+       RESIZE
+    ════════════════════════════════════════════════════════════ */
     let resizeTimer;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
@@ -664,56 +686,57 @@
       }, 150);
     });
 
-    /* ════════════════════════════════════════════════════════
-       KEYBOARD NAVIGATION
-    ════════════════════════════════════════════════════════ */
-
-    /* Escape: close panel, or close all open dropdowns */
+    /* ════════════════════════════════════════════════════════════
+       KEYBOARD NAVIGATION  (delegated)
+    ════════════════════════════════════════════════════════════ */
     document.addEventListener('keydown', e => {
-      if (e.key !== 'Escape') return;
-      if (menuOpen) { closeMenu(); return; }
-      closeAllDrops();
-    });
+      /* Escape */
+      if (e.key === 'Escape') {
+        if (menuOpen) { closeMenu(); return; }
+        closeAllDrops();
+        return;
+      }
 
-    /* Arrow keys inside desktop dropdown panels */
-    $$('.al-drop').forEach(drop => {
-      const items = $$('.al-di', drop);
-      items.forEach((item, i) => {
-        item.addEventListener('keydown', e => {
-          if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            items[(i + 1) % items.length].focus();
-          } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            items[(i - 1 + items.length) % items.length].focus();
-          } else if (e.key === 'Escape') {
-            const li = item.closest('.al-ni');
-            if (li) { closeDrop(li); $('button.al-nl', li)?.focus(); }
-          }
-        });
-      });
-    });
-
-    /* Enter / Space / ArrowDown on a dropdown trigger: open + focus first item */
-    $$('.al-ni[data-drop] > button.al-nl').forEach(btn => {
-      btn.addEventListener('keydown', e => {
-        if (!['ArrowDown', 'Enter', ' '].includes(e.key)) return;
-        const li = btn.closest('.al-ni');
-        if (!li.classList.contains('al-open')) {
+      /* Arrow keys inside dropdown panels */
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        const drop = e.target.closest('.al-drop');
+        if (drop) {
           e.preventDefault();
-          openDrop(li);
-          setTimeout(() => {
-            const first = $('.al-di', li) || $('.al-mob-di', li);
-            first && first.focus();
-          }, 50);
+          const items = [...drop.querySelectorAll('.al-di')];
+          const i = items.indexOf(e.target);
+          if (i === -1) return;
+          const next = e.key === 'ArrowDown'
+            ? items[(i + 1) % items.length]
+            : items[(i - 1 + items.length) % items.length];
+          next && next.focus();
+          return;
         }
-      });
+      }
+
+      /* Enter / Space / ArrowDown on dropdown trigger */
+      if (['ArrowDown', 'Enter', ' '].includes(e.key)) {
+        const btn = e.target.closest('.al-ni[data-drop] > button.al-nl');
+        if (btn) {
+          const li = btn.closest('.al-ni');
+          if (!li.classList.contains('al-open')) {
+            e.preventDefault();
+            openDrop(li);
+            setTimeout(() => {
+              const first = li.querySelector('.al-di') || li.querySelector('.al-mob-di');
+              first && first.focus();
+            }, 50);
+          }
+          return;
+        }
+      }
     });
 
-    /* Focus trap inside mobile panel */
-    menu && menu.addEventListener('keydown', e => {
+    /* Focus trap inside mobile panel (delegated) */
+    document.addEventListener('keydown', e => {
       if (e.key !== 'Tab' || !menuOpen) return;
-      const focusable = $$('a[href], button:not([disabled])', menu)
+      const m = menu();
+      if (!m) return;
+      const focusable = [...m.querySelectorAll('a[href], button:not([disabled])')]
         .filter(el => el.offsetParent !== null);
       if (!focusable.length) return;
       const first = focusable[0];
