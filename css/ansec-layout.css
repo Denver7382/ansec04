@@ -388,22 +388,25 @@ body.al-locked { overflow: hidden !important; }
    OVERLAY  (darkens page behind mobile menu)
 ═══════════════════════════════════════════════════════════ */
 .al-overlay {
-  display: none;
+  display: block;
   position: fixed; inset: 0;
   background: rgba(4, 10, 22, 0.52);
   backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
   z-index: var(--al-z-overlay);
-  opacity: 0; transition: opacity var(--al-tr-slow);
+  opacity: 0;
+  pointer-events: none;          /* invisible = not clickable, never blocks the page */
+  transition: opacity var(--al-tr-slow);
 }
-.al-overlay.al-vis { opacity: 1; }
+.al-overlay.al-vis {
+  opacity: 1;
+  pointer-events: auto;          /* only intercept clicks when actually visible */
+}
 
 
 /* ═══════════════════════════════════════════════════════════
    MOBILE MENU PANEL  (slides from right on ≤992px)
 ═══════════════════════════════════════════════════════════ */
 @media (max-width: 992px) {
-
-  .al-overlay { display: block; }
 
   .al-menu {
     position: fixed;
