@@ -404,6 +404,7 @@ body.al-locked { overflow: hidden !important; }
 @media (max-width: 992px) {
 
   .al-overlay { display: block; }
+   
 
   .al-menu {
     position: fixed;
