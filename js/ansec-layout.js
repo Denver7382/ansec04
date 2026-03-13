@@ -112,7 +112,7 @@
 <div class="al-topbar" id="al-topbar" role="banner">
   <div class="al-topbar-inner">
     <a href="/index.html" class="al-brand" aria-label="Anum Presbyterian SHS home">
-      <img src="/assets/images/anseclogo.jpg" alt="ANSEC Logo"
+      <img src="/assets/images/ansecLogo.jpg" alt="ANSEC Logo"
            class="al-logo" width="40" height="40"
            loading="eager" onerror="this.style.display='none'"/>
       <span class="al-school-name">
@@ -143,7 +143,7 @@
 <nav class="al-navbar" id="al-navbar" role="navigation" aria-label="Main navigation">
   <div class="al-navbar-inner">
 
-    <a href="/index.html" class="al-wordmark" aria-label="ANSEC home">AN<em>SEC</em></a>
+    <a href="index.html" class="al-wordmark" aria-label="ANSEC home">AN<em>SEC</em></a>
 
     <button class="al-burger" id="al-burger"
             aria-label="Open navigation menu"
