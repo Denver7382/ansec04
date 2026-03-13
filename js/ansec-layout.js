@@ -40,11 +40,11 @@
     useInlineComponents: false,
 
     /* Paths to the component HTML files (relative to site root) */
-    headerPath: '/assets/components/ansec-header-component.html',
-    footerPath: '/assets/components/ansec-footer-component.html',
+    headerPath: '/components/ansec-header-component.html',
+    footerPath: '/components/ansec-footer-component.html',
 
     /* Path to the shared CSS file */
-    cssPath: '/assets/css/ansec-layout.css',
+    cssPath: '/css/ansec-layout.css',
 
     /* IDs of the mount-point divs in your page HTML.
        Every page should contain:
@@ -112,7 +112,7 @@
 <div class="al-topbar" id="al-topbar" role="banner">
   <div class="al-topbar-inner">
     <a href="/index.html" class="al-brand" aria-label="Anum Presbyterian SHS home">
-      <img src="/assets/images/ansecLogo.jpg" alt="ANSEC Logo"
+      <img src="/images/ansecLogo.jpg" alt="ANSEC Logo"
            class="al-logo" width="40" height="40"
            loading="eager" onerror="this.style.display='none'"/>
       <span class="al-school-name">
@@ -409,7 +409,7 @@
       <div class="cs-col cs-col-crest">
         <img
           class="cs-crest"
-          src="/assets/images/ansecLogo.jpg"
+          src="/images/ansecLogo.jpg"
           alt="ANSEC School Crest"
           width="64" height="64"
           loading="lazy"
